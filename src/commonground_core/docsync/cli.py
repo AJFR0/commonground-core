@@ -108,7 +108,7 @@ def main(argv: list[str] | None = None) -> int:
         only = re.compile(a.only).search if a.only else None
         res = prepare(cfg, store, a.profile, full=a.full, only=only, log=log)
         print(json.dumps({"profile": res.profile, "written": len(res.written), "unchanged": res.skipped,
-                          "removed": len(res.removed), "chunks": res.chunks}, indent=1))
+                          "removed": len(res.removed), "failed": res.failed, "chunks": res.chunks}, indent=1))
         return 0
 
     if a.cmd == "export":

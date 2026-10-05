@@ -81,6 +81,12 @@ Re-run `prepare --full` after changing extraction or chunking settings. It rebui
 
 Every chunk record carries `text_to_embed` (page title + heading path + text) so retrieval keeps context. That follows the Databricks retrieval-quality guidance on enriching chunks with section headers.
 
+## Robustness
+
+- **Omitted end tags.** docs.databricks.com writes large tables with no `</td>`, `</tr>` or `</p>`, which is valid HTML. The parser infers them the way browsers do. Without that, one audit-log table nested 966 levels deep. A depth cap is the last-resort guard.
+- **One bad page never stops a run.** If extraction fails, the raw HTML is still stored and the error is recorded on the page (`extract_error`), so a later `prepare` with a fixed parser picks it up. Any other per-page failure becomes an `error` event, and the run continues.
+- **Interrupted first sync.** The manifest is checkpointed every 50 pages; re-running resumes.
+
 ## Running it elsewhere
 
 - **Laptop:** `pip install -e .` then `cgdocs sync -c sources/databricks-docs.yaml`.

@@ -44,16 +44,53 @@ class Node:
         return "".join(out)
 
 
+# HTML lets authors omit many end tags (</p>, </li>, </td>, </tr>, ...); browsers infer them.
+# Docusaurus emits tables like <tbody><tr><td><p>a<td><p>b<tr>... with every end tag omitted.
+# Without inference each cell nests inside the previous one (966 levels on one real page).
+# starting tag -> (open tags it implicitly closes, tags that bound the search)
+IMPLIED_END = {
+    "li": ({"li"}, {"ul", "ol", "menu"}),
+    "dt": ({"dt", "dd"}, {"dl"}),
+    "dd": ({"dt", "dd"}, {"dl"}),
+    "tr": ({"tr"}, {"table", "thead", "tbody", "tfoot"}),
+    "td": ({"td", "th"}, {"tr", "table"}),
+    "th": ({"td", "th"}, {"tr", "table"}),
+    "thead": ({"thead", "tbody", "tfoot"}, {"table"}),
+    "tbody": ({"thead", "tbody", "tfoot"}, {"table"}),
+    "tfoot": ({"thead", "tbody", "tfoot"}, {"table"}),
+    "option": ({"option"}, {"select", "datalist", "optgroup"}),
+}
+# Block-level start tags close an open <p> (within "button scope", per the HTML spec).
+P_CLOSERS = {"address", "article", "aside", "blockquote", "details", "div", "dl", "fieldset",
+             "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "header",
+             "hgroup", "hr", "main", "menu", "nav", "ol", "p", "pre", "section", "table", "ul"}
+P_SCOPE = {"td", "th", "table", "caption", "button", "html", "template"}
+MAX_DEPTH = 120  # real docs pages peak near 30 (287-page sample); last-resort guard: deeper elements are attached flat instead of nested
+
+
 class _Builder(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.root = Node("#root")
         self.stack = [self.root]
 
+    def _close_implied(self, closes: set[str], bounds: set[str]) -> None:
+        for i in range(len(self.stack) - 1, 0, -1):
+            t = self.stack[i].tag
+            if t in closes:
+                del self.stack[i:]
+                return
+            if t in bounds:
+                return
+
     def handle_starttag(self, tag, attrs):
+        if tag in P_CLOSERS:
+            self._close_implied({"p"}, P_SCOPE)
+        if tag in IMPLIED_END:
+            self._close_implied(*IMPLIED_END[tag])
         node = Node(tag, {k: (v or "") for k, v in attrs}, parent=self.stack[-1])
         self.stack[-1].children.append(node)
-        if tag not in VOID:
+        if tag not in VOID and len(self.stack) < MAX_DEPTH:
             self.stack.append(node)
 
     def handle_startendtag(self, tag, attrs):
@@ -347,3 +384,19 @@ def extract(html: str, url: str, content_selectors: list[str], strip_selectors: 
         selector=used,
         word_count=len(text.split()),
     )
+
+
+def safe_extract(html: str, url: str, content_selectors: list[str], strip_selectors: list[str]
+                 ) -> tuple[Page, str | None]:
+    """Never raises. On failure returns a minimal Page (crude text, empty markdown) and the error,
+    so one odd page can't stop a sync and its raw HTML is still stored for a later re-prepare."""
+    try:
+        return extract(html, url, content_selectors, strip_selectors), None
+    except Exception as e:  # noqa: BLE001 - deliberately broad; recorded on the doc
+        body = re.sub(r"(?is)<(script|style)\b.*?</\1>", " ", html)
+        text = normalize_text(re.sub(r"(?s)<[^>]+>", " ", body))
+        m = re.search(r"(?is)<title[^>]*>(.*?)</title>", html)
+        page = Page(url=url, title=normalize_text(m.group(1)) if m else None, h1=None, canonical=None,
+                    description=None, last_updated=None, breadcrumbs=[], headings=[], markdown="",
+                    text=text, content_hash=content_hash(text), selector=None, word_count=len(text.split()))
+        return page, f"{type(e).__name__}: {e}"[:500]

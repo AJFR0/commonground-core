@@ -49,36 +49,83 @@ detect:
     - .theme-doc-toc-mobile
 
 # Path prefix -> taxonomy domain, used by coverage reports in the apps. Longest prefix wins.
-# Prefixes were drafted from the sitemap's top-level sections; check them against a real sync
-# (`cgdocs status --sections`) and adjust.
+# Built from the AWS sitemap's top-level folders (2026-10-05). Page counts at that time:
+# sql 1186, pyspark 1124, ingestion 626, error-messages 452, dev-tools 358, machine-learning 233,
+# admin 133, ldp 128, oltp (Lakebase) 103, mlflow3 99, security 99, data-governance 80, agents 67.
+# sql/, pyspark/ and error-messages/ are mostly API reference; add them to `exclude` above for a
+# faster, concept-focused corpus (~4,000 pages instead of ~5,700).
 sections:
-  /aws/en/admin/: platform
-  /aws/en/agents/: genai
-  /aws/en/ai-gateway/: genai
-  /aws/en/ai-search/: genai
-  /aws/en/generative-ai/: genai
-  /aws/en/large-language-models/: genai
-  /aws/en/machine-learning/: ml
-  /aws/en/mlflow/: ml
-  /aws/en/data-governance/: governance
-  /aws/en/catalogs/: governance
-  /aws/en/security/: governance
-  /aws/en/delta-sharing/: sharing
-  /aws/en/marketplace/: sharing
-  /aws/en/clean-rooms/: sharing
+  /aws/en/sql/: data_warehousing
+  /aws/en/dashboards/: data_warehousing
+  /aws/en/query-federation/: data_warehousing
+  /aws/en/query/: data_warehousing
+  /aws/en/genie/: data_warehousing
+  /aws/en/genie-one/: data_warehousing
+  /aws/en/ai-bi/: data_warehousing
+  /aws/en/visualizations/: data_warehousing
+  /aws/en/uc-semantics/: data_warehousing
+  /aws/en/pyspark/: data_engineering
   /aws/en/ingestion/: data_engineering
   /aws/en/ldp/: data_engineering
   /aws/en/jobs/: data_engineering
-  /aws/en/data-engineering/: data_engineering
+  /aws/en/tables/: data_engineering
   /aws/en/structured-streaming/: data_engineering
+  /aws/en/optimizations/: data_engineering
+  /aws/en/designer/: data_engineering
+  /aws/en/sparkr/: data_engineering
+  /aws/en/udf/: data_engineering
+  /aws/en/data-engineering/: data_engineering
   /aws/en/delta/: data_engineering
-  /aws/en/sql/: data_warehousing
-  /aws/en/ai-bi/: data_warehousing
-  /aws/en/dashboards/: data_warehousing
-  /aws/en/genie/: data_warehousing
-  /aws/en/compute/: platform
+  /aws/en/spark/: data_engineering
+  /aws/en/transform/: data_engineering
+  /aws/en/pandas/: data_engineering
+  /aws/en/stateful-applications/: data_engineering
+  /aws/en/semi-structured/: data_engineering
+  /aws/en/agents/: genai
+  /aws/en/ai-gateway/: genai
+  /aws/en/ai-search/: genai
+  /aws/en/large-language-models/: genai
+  /aws/en/genie-code/: genai
+  /aws/en/genie-agents/: genai
+  /aws/en/generative-ai/: genai
+  /aws/en/machine-learning/: ml
+  /aws/en/mlflow3/: ml
+  /aws/en/mlflow/: ml
+  /aws/en/security/: governance
+  /aws/en/data-governance/: governance
+  /aws/en/external-access/: governance
+  /aws/en/volumes/: governance
+  /aws/en/discover/: governance
+  /aws/en/catalogs/: governance
+  /aws/en/unity-gateway/: governance
+  /aws/en/opensharing/: sharing
+  /aws/en/marketplace/: sharing
+  /aws/en/clean-rooms/: sharing
+  /aws/en/delta-sharing/: sharing
+  /aws/en/admin/: platform
   /aws/en/dev-tools/: platform
-  /aws/en/lakebase/: platform
+  /aws/en/oltp/: platform
+  /aws/en/integrations/: platform
+  /aws/en/compute/: platform
+  /aws/en/partners/: platform
+  /aws/en/notebooks/: platform
+  /aws/en/connect/: platform
+  /aws/en/repos/: platform
+  /aws/en/partner-connect/: platform
+  /aws/en/files/: platform
+  /aws/en/libraries/: platform
+  /aws/en/init-scripts/: platform
+  /aws/en/workspace/: platform
+  /aws/en/dbfs/: platform
+  /aws/en/error-messages/: platform
+  /aws/en/migration/: platform
+  /aws/en/lakehouse-architecture/: fundamentals
+  /aws/en/getting-started/: fundamentals
+  /aws/en/resources/: fundamentals
+  /aws/en/lakehouse/: fundamentals
+  /aws/en/reference/: fundamentals
+  /aws/en/cheat-sheet/: fundamentals
+  /aws/en/languages/: fundamentals
   /aws/en/: fundamentals
 
 prepare:

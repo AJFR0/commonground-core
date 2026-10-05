@@ -24,7 +24,7 @@ import yaml
 
 from .chunkers import CHUNKERS
 from .config import SourceConfig
-from .extract import extract
+from .extract import safe_extract
 from .store import Store
 
 FORMATS = ("markdown", "json", "chunks")
@@ -37,6 +37,7 @@ class PrepareResult:
     written: list[str] = field(default_factory=list)
     skipped: int = 0
     removed: list[str] = field(default_factory=list)
+    failed: list[dict[str, str]] = field(default_factory=list)
     chunks: int = 0
 
 
@@ -94,7 +95,10 @@ def prepare(cfg: SourceConfig, store: Store, profile_name: str, full: bool = Fal
             continue
 
         html = store.read(rec["raw_path"]).decode("utf-8", "replace")
-        page = extract(html, url, cfg.detect.content_selectors, cfg.detect.strip_selectors)
+        page, err = safe_extract(html, url, cfg.detect.content_selectors, cfg.detect.strip_selectors)
+        if err:
+            res.failed.append({"url": url, "error": err})  # not marked done; retried next prepare
+            continue
         meta = doc_meta(rec, cfg.name)
         if fmt == "markdown":
             data = (_front_matter(meta) + page.markdown).encode()
@@ -112,5 +116,6 @@ def prepare(cfg: SourceConfig, store: Store, profile_name: str, full: bool = Fal
     if res.removed:
         store.write(f"{base}/_removed.json", json.dumps(
             {"at": datetime.now(timezone.utc).isoformat(), "urls": res.removed}, indent=1).encode())
-    log(f"{profile_name}: wrote {len(res.written)}, unchanged {res.skipped}, removed {len(res.removed)}")
+    msg = f"{profile_name}: wrote {len(res.written)}, unchanged {res.skipped}, removed {len(res.removed)}"
+    log(msg + (f", failed {len(res.failed)}" if res.failed else ""))
     return res

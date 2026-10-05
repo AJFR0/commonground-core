@@ -26,7 +26,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
 from .config import SourceConfig
-from .extract import extract
+from .extract import safe_extract
 from .fetch import FetchError, HttpClient
 from .sitemap import SitemapEntry, discover
 from .store import Store, doc_path
@@ -197,9 +197,9 @@ def sync(cfg: SourceConfig, store: Store, client: HttpClient, mode: str = "incre
             return
 
         html = resp.body.decode("utf-8", "replace")
-        page = extract(html, url, cfg.detect.content_selectors, cfg.detect.strip_selectors)
+        page, extract_error = safe_extract(html, url, cfg.detect.content_selectors, cfg.detect.strip_selectors)
         raw_hash = hashlib.sha256(resp.body).hexdigest()
-        rec.update(status="active", error=None, etag=resp.header("etag"),
+        rec.update(status="active", error=None, extract_error=extract_error, etag=resp.header("etag"),
                    last_modified=resp.header("last-modified"), raw_hash=raw_hash,
                    title=page.title, h1=page.h1, canonical=page.canonical, description=page.description,
                    breadcrumbs=page.breadcrumbs, headings=page.headings, word_count=page.word_count,
@@ -227,14 +227,26 @@ def sync(cfg: SourceConfig, store: Store, client: HttpClient, mode: str = "incre
         with lock:
             docs[url] = rec
         emit({"url": url, "doc_id": rec["doc_id"], "event": "added" if is_new else "updated",
-              "version": version, "content_hash": page.content_hash,
+              "version": version, "content_hash": page.content_hash, "extract_error": extract_error,
               "prev_content_hash": prev.get("content_hash"), "page_last_updated": page.last_updated,
               "raw_path": raw_rel})
+
+    def guarded(entry: SitemapEntry) -> None:
+        try:
+            handle(entry)
+        except Exception as e:  # noqa: BLE001 - one bad page must not stop the run
+            with lock:
+                rec = dict(docs.get(entry.url) or {"url": entry.url, "doc_id": doc_path(entry.url)})
+                rec.update(status=rec.get("status") if rec.get("content_hash") else "error",
+                           error=f"{type(e).__name__}: {e}"[:500], last_checked=now().isoformat())
+                docs[entry.url] = rec
+            emit({"url": entry.url, "doc_id": doc_path(entry.url), "event": "error",
+                  "error": f"{type(e).__name__}: {e}"[:500]})
 
     done = 0
     checkpoint = 50
     with ThreadPoolExecutor(max_workers=max(1, cfg.fetch.workers)) as pool:
-        for _ in pool.map(handle, todo):
+        for _ in pool.map(guarded, todo):
             done += 1
             if done % checkpoint == 0:  # survive interruptions on long first runs
                 with lock:

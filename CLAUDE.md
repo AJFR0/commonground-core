@@ -15,4 +15,6 @@ Shared library for the public Commonground site and the internal work app. Read 
 
 `pytest` runs offline: `tests/conftest.py` has a fake website (robots, gzipped sitemap index, ETags/304s, 429s), and `tests/fixtures/page_ai_search.html` is a trimmed real docs.databricks.com page. Add a test with any change to detection, extraction, chunking or the gate.
 
+Extraction must never take down a sync: keep `safe_extract` and the per-page guard in `sync.py`. `tests/test_robustness.py` reproduces the real omitted-end-tag tables.
+
 If docs.databricks.com changes its markup, refresh the fixture from a live page and adjust `detect.content_selectors` / `strip_selectors` in `sources/databricks-docs.yaml` before touching code.
