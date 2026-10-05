@@ -328,9 +328,24 @@ def content_hash(text: str) -> str:
     return hashlib.sha256(normalize_text(text).encode("utf-8")).hexdigest()
 
 
+NOT_PAGE_TITLE = {"svg", "math", "nav", "template"}  # <title> inside these labels an icon or menu
+
+
+def _page_title(root: Node) -> Node | None:
+    """The document's <title>: the first one not inside an inline SVG, MathML, nav or template."""
+    for n in root.iter():
+        if n.tag == "title":
+            p = n.parent
+            while p is not None and p.tag not in NOT_PAGE_TITLE:
+                p = p.parent
+            if p is None:
+                return n
+    return None
+
+
 def extract(html: str, url: str, content_selectors: list[str], strip_selectors: list[str]) -> Page:
     root = parse_html(html)
-    head_title = select_first(root, "title")
+    head_title = _page_title(root)
     og = select_first(root, 'meta[property="og:title"]')
     canonical = select_first(root, 'link[rel="canonical"]')
     desc = select_first(root, 'meta[name="description"]')

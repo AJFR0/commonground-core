@@ -18,6 +18,11 @@ exclude:
   - /archive/            # deprecated pages (also disallowed by robots.txt)
   - /release-notes/      # very high churn; enable if you want release notes
   - "[?#]"               # query strings and fragments
+  # API reference: ~2,700 pages of SQL/PySpark function and error-code reference that rarely helps
+  # explain a concept. Remove these three lines for a complete mirror (~5,700 pages instead of ~4,000).
+  - ^https://docs\.databricks\.com/aws/en/sql/
+  - ^https://docs\.databricks\.com/aws/en/pyspark/
+  - ^https://docs\.databricks\.com/aws/en/error-messages/
 
 respect_robots: true
 user_agent: "commonground-docsync/0.1 (+https://commonground.ajf.codes)"
@@ -52,8 +57,8 @@ detect:
 # Built from the AWS sitemap's top-level folders (2026-10-05). Page counts at that time:
 # sql 1186, pyspark 1124, ingestion 626, error-messages 452, dev-tools 358, machine-learning 233,
 # admin 133, ldp 128, oltp (Lakebase) 103, mlflow3 99, security 99, data-governance 80, agents 67.
-# sql/, pyspark/ and error-messages/ are mostly API reference; add them to `exclude` above for a
-# faster, concept-focused corpus (~4,000 pages instead of ~5,700).
+# sql/, pyspark/ and error-messages/ are excluded above by default; their mappings stay here so
+# re-including them needs no other change.
 sections:
   /aws/en/sql/: data_warehousing
   /aws/en/dashboards/: data_warehousing

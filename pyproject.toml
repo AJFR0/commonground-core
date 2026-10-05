@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "commonground-core"
-version = "0.1.0"
+version = "0.2.0"
 description = "Shared core for Commonground: public-docs sync (docsync), concept spine, and the analogy teaching gate."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Proprietary (personal project)" }
+license = { text = "MIT" }
 authors = [{ name = "AJ Franchino" }]
 dependencies = [
   "requests>=2.31",

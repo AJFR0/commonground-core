@@ -87,6 +87,18 @@ Every chunk record carries `text_to_embed` (page title + heading path + text) so
 - **One bad page never stops a run.** If extraction fails, the raw HTML is still stored and the error is recorded on the page (`extract_error`), so a later `prepare` with a fixed parser picks it up. Any other per-page failure becomes an `error` event, and the run continues.
 - **Interrupted first sync.** The manifest is checkpointed every 50 pages; re-running resumes.
 
+## Where the copy lives
+
+Keep the mirror **private**. It is a copy of someone else's copyrighted documentation, and anyone can already read the originals, so publishing it adds risk and egress cost without adding value. What's worth publishing, if anything, is derived data: the page index, section counts and the change feed.
+
+| Where | How | Notes |
+| --- | --- | --- |
+| Laptop (default) | `--root ./data` (or `$CGDOCS_ROOT`) | Git-ignored. The working copy. |
+| Private S3 backup | `aws s3 sync ./data s3://<bucket>/docsync --exclude "*/_export_state/*"` | Incremental by itself (only changed files upload). No extra Python dependencies. Bucket: Block Public Access on, default encryption. |
+| Unity Catalog volume | Run docsync *on* Databricks with `--root /Volumes/<catalog>/<schema>/<volume>` (`databricks/01_run_docsync.py`) | Preferred for the work app: no dependency on a personal cloud account. |
+| Volume, fed from a laptop | `cgdocs export --what prepared/docs-json --to /Volumes/...` | Copies only changed files and deletes vanished ones. |
+| Object storage as the root | `--root s3://...` with the `cloud` extra plus the matching fsspec driver (`s3fs`, `adlfs`, `gcsfs`) | For running in a Lambda or Cloud Run job. |
+
 ## Running it elsewhere
 
 - **Laptop:** `pip install -e .` then `cgdocs sync -c sources/databricks-docs.yaml`.

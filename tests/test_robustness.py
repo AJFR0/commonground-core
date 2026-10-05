@@ -92,3 +92,9 @@ def test_extract_error_is_recorded_and_raw_kept(cfg, tmp_path, client, site, mon
     store = Store(tmp_path, cfg.name)
     rec = store.load_manifest()["docs"][BASE + "/guides/a"]
     assert rec["extract_error"].startswith("ValueError") and store.read(rec["raw_path"])
+
+
+def test_title_skips_svg_and_nav_titles():
+    html = ("<svg><title>icon</title></svg><nav><title>Menu</title></nav><title>Real page</title>"
+            "<main><p>" + "word " * 50 + "</p></main>")
+    assert ex.extract(html, "u", C, S).title == "Real page"
