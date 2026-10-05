@@ -28,8 +28,24 @@ RUBRIC = {
 }
 
 
-def craft_brief(concept: dict[str, Any], anchor_label: str, facts: str) -> str:
-    """Canonical instruction to craft ONE card. Both agent-crafted and API-generated cards follow it."""
+# The check question tests APPLYING the concept, not recalling it. A reader who can only repeat a
+# definition hasn't learned it; one who can use it on a new situation has.
+CHECK_RULES = {
+    "learner": ("a short SCENARIO the reader hasn't seen, which they solve by APPLYING the concept "
+                "(\"You need X; what would you use, and why?\", \"Y is happening; what's the likely cause?\"). "
+                "Never a definition or recall question (\"What is ...?\", \"What does ... stand for?\")."),
+    "business": ("a short CUSTOMER SCENARIO: a stakeholder says or wants something, and the reader decides how "
+                 "this concept applies or what to ask next (\"A data leader says X. Does this help, and what "
+                 "would you ask?\"). Never a definition or recall question."),
+}
+
+
+def craft_brief(concept: dict[str, Any], anchor_label: str, facts: str, audience: str = "learner") -> str:
+    """Canonical instruction to craft ONE card. Both agent-crafted and API-generated cards follow it.
+
+    audience: "learner" (how it works) or "business" (customer-facing scenarios for the check)."""
+    if audience not in CHECK_RULES:
+        raise ValueError(f"audience must be one of {sorted(CHECK_RULES)}")
     return f"""Teach this ONE concept through the anchor domain, as a Commonground analogy card.
 
 CONCEPT: {concept['name']}
@@ -48,13 +64,55 @@ concept's parts in anchor vocabulary ("the X is like the anchor's X"), the analo
 this pairing: either move the real teaching into where_it_breaks, or say the anchor doesn't fit. Aim
 for a mapping that would score 4-5 on illumination, never settle for relabeling.
 
+CHECK RULE: the check question is {CHECK_RULES[audience]} The answer gives the reasoning in one
+sentence, using only the grounding facts.
+
 Respond with STRICT JSON, exactly these keys:
 {{
   "bridge": "2-3 sentences mapping the concept onto the anchor with concrete nouns; one-to-one.",
   "where_it_breaks": "1-2 sentences naming where the analogy stops being accurate.",
-  "check": {{"q": "one short comprehension question", "a": "the answer in one sentence"}}
+  "check": {{"q": "one short scenario question (see CHECK RULE)", "a": "the answer and why, in one sentence"}}
 }}
 Voice: a clever, encouraging tutor; plain words first, jargon second. Never invent capabilities."""
+
+
+# Recall-style questions: short "What is X?" forms and definition phrasing.
+_RECALL = [
+    re.compile(r"^\s*(what|which)\s+(is|are|was|were)\s+(an?\s+|the\s+)?[\w .()/'-]{1,60}\?\s*$", re.I),
+    re.compile(r"\bstands?\s+for\b", re.I),
+    re.compile(r"\b(definition of|is defined as|best describes|best defines)\b", re.I),
+    re.compile(r"^\s*(define|name)\b", re.I),
+    re.compile(r"^\s*what\s+does\s+[\w .()/'-]{1,60}\s+(mean|do)\?\s*$", re.I),
+    re.compile(r"\btrue or false\b", re.I),
+]
+# Words that signal a situation to reason about.
+_SCENARIO = re.compile(r"\b(you|your|you're|customer|team|stakeholder|user|if|when|suppose|imagine|"
+                       r"needs?|wants?|asks?|says?|should|would|why)\b", re.I)
+
+
+def recall_smell(question: str) -> str | None:
+    """Heuristic lint for a check question. Returns why it looks like recall, or None if it reads like a
+    scenario. Advisory: a reviewer decides; it never blocks on its own."""
+    q = (question or "").strip()
+    if not q:
+        return "empty question"
+    for pat in _RECALL:
+        if pat.search(q) and not (_SCENARIO.search(q) and len(q.split()) > 12):
+            return "reads like definition recall; ask the reader to apply the concept to a situation"
+    if len(q.split()) < 6 and not _SCENARIO.search(q):
+        return "too short to describe a situation"
+    return None
+
+
+def check_style_problems(cards: dict[str, dict[str, dict[str, Any]]]) -> list[str]:
+    """Advisory lint over {concept_id: {anchor_id: card}}: check questions that test recall."""
+    out = []
+    for cid, by_anchor in cards.items():
+        for aid, card in (by_anchor or {}).items():
+            why = recall_smell((card.get("check") or {}).get("q", ""))
+            if why:
+                out.append(f"recall-style check in {cid} x {aid}: {why}")
+    return out
 
 
 def judge_brief(concept: dict[str, Any], anchor_label: str, card: dict[str, Any]) -> str:

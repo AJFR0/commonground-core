@@ -4,7 +4,8 @@ Shared, public-safe core for both Commonground apps:
 
 - **`docsync`**: keeps a current copy of public documentation (Databricks docs by default), detects exactly what changed, and prepares it however you want: markdown, JSON for Delta, built-in chunks, or PDF for `ai_parse_document`.
 - **`spine`**: the concept format both apps share.
-- **`teaching`**: how to craft an analogy card, how to judge whether it teaches or just renames, and the gate that decides what's shown.
+- **`teaching`**: how to craft an analogy card (with a check question that makes the reader apply the idea, not recall it), how to judge whether it teaches or just renames, and the gate that decides what's shown.
+- **`glossary`**: plain-English definitions behind every technical term, with the term used in a sentence; finds first mentions so apps can show them as tooltips. Ships a cited starter glossary of public Databricks terms.
 
 Both apps depend on this repo; it depends on neither. It must never contain internal material: content and code flow from here to the work app, never back.
 
@@ -45,11 +46,14 @@ There are alternatives for owning chunking (`route_b_builtin_chunks.sql`) or the
 ```python
 from commonground_core.docsync import HttpClient, Store, load_config, prepare, sync
 from commonground_core.teaching import illumination_gate, judge_brief, shown_analogies
+from commonground_core.glossary import default_glossary
 
 cfg = load_config("sources/databricks-docs.yaml")
 store = Store("./data", cfg.name)
 sync(cfg, store, HttpClient(cfg.user_agent))
 prepare(cfg, store, "docs-json")
+
+html = default_glossary().annotate_html("RAG grounds an LLM in your documents.")  # <dfn> on first mentions
 ```
 
 Install from another repo: `pip install "commonground-core @ git+https://github.com/AJFR0/commonground-core.git"`.
@@ -60,7 +64,9 @@ Install from another repo: `pip install "commonground-core @ git+https://github.
 src/commonground_core/
   docsync/   config, sitemap, fetch, extract, store, sync, prepare, chunkers, export, render_pdf, cli
   spine.py   concept + analogy-card shapes, validation
-  teaching.py craft/judge briefs, illumination gate, display rule
+  teaching.py craft/judge briefs, scenario-check lint, illumination gate, display rule
+  glossary.py terms, first-mention matching, validation, drafting brief
+  data/       glossary.yaml (shared public glossary)
 sources/     one YAML per documentation source
 databricks/  notebooks and SQL for the Databricks routes
 docs/        docsync design, anchor playbook

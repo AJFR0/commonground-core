@@ -1,0 +1,199 @@
+# Shared glossary: public Databricks vocabulary, shown as a tooltip on first use in both apps.
+# Every non-general definition is grounded in, and cites, a public docs page (checked 2026-10-05).
+# Validate:  python -c "from commonground_core.glossary import default_glossary as D; print(D().problems() or 'OK')"
+# Apps layer their own terms on top with glossary.merge(base, app_terms).
+terms:
+  - id: lakehouse
+    term: lakehouse
+    aliases: [data lakehouse]
+    domain: fundamentals
+    plain: >-
+      A data management system that combines the benefits of data lakes and data warehouses, so one
+      platform serves BI, data engineering and machine learning instead of separate, isolated systems.
+    say_it: We moved reporting and the ML work onto one lakehouse instead of copying data between a lake and a warehouse.
+    customer_line: A lakehouse lets your analysts and data scientists work from the same governed data instead of separate copies.
+    source_urls: [https://docs.databricks.com/aws/en/lakehouse/]
+    related: [delta-lake, unity-catalog, medallion-architecture]
+
+  - id: medallion-architecture
+    term: medallion architecture
+    domain: fundamentals
+    plain: >-
+      A way of organizing lakehouse data into layers of rising quality: bronze keeps raw ingested data,
+      silver holds cleaned and validated data, and gold holds aggregated data ready for analytics.
+    say_it: In our medallion architecture the raw clickstream lands in bronze and the dashboard reads a gold table.
+    customer_line: The medallion architecture gives every team a clear answer to which tables are trusted for reporting.
+    source_urls: [https://docs.databricks.com/aws/en/lakehouse/medallion]
+    related: [lakehouse]
+
+  - id: delta-lake
+    term: Delta Lake
+    domain: data_engineering
+    plain: >-
+      The open-source storage layer behind tables on Databricks. It adds a transaction log to Parquet
+      data files, which gives tables ACID transactions and scalable metadata handling.
+    say_it: Because it's a Delta Lake table, two jobs can write to it at the same time without corrupting it.
+    source_urls: [https://docs.databricks.com/aws/en/delta/]
+    related: [acid-transactions, parquet, lakehouse]
+
+  - id: acid-transactions
+    term: ACID transactions
+    aliases: [ACID transaction, ACID]
+    domain: data_engineering
+    plain: >-
+      Guarantees that each change to a table completes fully or not at all, stays isolated from other
+      writes happening at the same time, and is durable once committed. Delta Lake provides them by default.
+    say_it: ACID transactions are why a failed load doesn't leave the table half-written.
+    customer_line: With ACID transactions, a failed nightly load never leaves your reports reading half-updated numbers.
+    source_urls: [https://docs.databricks.com/aws/en/lakehouse/acid]
+    related: [delta-lake]
+
+  - id: parquet
+    term: Parquet
+    general: true
+    domain: data_engineering
+    plain: An open file format for storing tables efficiently; Delta Lake tables are built on Parquet data files.
+    say_it: The vendor exports Parquet files, so we can load them without any conversion.
+    source_urls: [https://docs.databricks.com/aws/en/delta/]
+    related: [delta-lake]
+
+  - id: unity-catalog
+    term: Unity Catalog
+    aliases: [UC]
+    domain: governance
+    plain: >-
+      The unified governance layer for data and AI built into Databricks. It enforces access control,
+      tracks lineage and logs activity on data and AI assets.
+    say_it: We track who can see the customer table in Unity Catalog.
+    customer_line: Unity Catalog gives you one place to answer who can see which data, and who did.
+    source_urls: [https://docs.databricks.com/aws/en/data-governance/unity-catalog/]
+    related: [metastore, three-level-namespace, securable, data-lineage]
+
+  - id: metastore
+    term: metastore
+    domain: governance
+    plain: >-
+      The top level of Unity Catalog's object hierarchy. Catalogs sit under it, along with account-level
+      objects such as storage credentials, external locations and shares.
+    say_it: Catalogs live under the metastore, so start there when you map out who owns what.
+    source_urls: [https://docs.databricks.com/aws/en/data-governance/unity-catalog/]
+    related: [unity-catalog, three-level-namespace]
+
+  - id: three-level-namespace
+    term: three-level namespace
+    aliases: [catalog.schema.table, catalog.schema.object]
+    domain: governance
+    plain: >-
+      How Unity Catalog names assets: catalog, then schema, then the object itself (a table, view, volume,
+      function or model), written as catalog.schema.object.
+    say_it: Use the full three-level namespace, like sales.emea.orders, so there's no doubt which table you mean.
+    source_urls: [https://docs.databricks.com/aws/en/data-governance/unity-catalog/]
+    related: [unity-catalog, metastore]
+
+  - id: securable
+    term: securable object
+    aliases: [securable, securables, securable objects]
+    domain: governance
+    plain: >-
+      Any object in Unity Catalog that you can grant permissions on to users, service principals or groups,
+      such as a catalog, schema, table or volume.
+    say_it: Every table is a securable object, so access to it is granted, never assumed.
+    source_urls: [https://docs.databricks.com/aws/en/data-governance/unity-catalog/]
+    related: [unity-catalog]
+
+  - id: data-lineage
+    term: data lineage
+    aliases: [lineage]
+    domain: governance
+    plain: >-
+      A record of where data comes from and where it goes: which queries and files populate a table,
+      which jobs and notebooks transform it, and which dashboards consume it.
+    say_it: Before you change that column, check its data lineage to see which dashboards depend on it.
+    customer_line: Data lineage shows the auditor exactly which sources feed the revenue report.
+    source_urls: [https://docs.databricks.com/aws/en/data-governance/unity-catalog/data-lineage]
+    related: [unity-catalog]
+
+  - id: model-serving
+    term: Model Serving
+    aliases: [model serving endpoint, serving endpoint]
+    domain: genai
+    plain: >-
+      Databricks' interface for deploying, governing and querying AI models for real-time and batch
+      inference. Each deployed model is available as a REST API.
+    say_it: We put the fraud model behind Model Serving so the app calls it like any other API.
+    source_urls: [https://docs.databricks.com/aws/en/machine-learning/model-serving/]
+    related: [foundation-model-apis, api]
+
+  - id: foundation-model-apis
+    term: Foundation Model APIs
+    aliases: [Foundation Model API]
+    domain: genai
+    plain: >-
+      Access to state-of-the-art open models from a Databricks serving endpoint, either pay-per-token (the
+      easiest way to start) or with provisioned throughput (recommended for production).
+    say_it: Prototype on the Foundation Model APIs pay-per-token, then move to provisioned throughput for production.
+    source_urls: [https://docs.databricks.com/aws/en/machine-learning/foundation-model-apis/]
+    related: [model-serving, llm]
+
+  - id: ai-functions
+    term: AI Functions
+    aliases: [AI Function]
+    domain: genai
+    plain: >-
+      Built-in functions that apply LLMs to data on Databricks from SQL, notebooks or pipelines.
+      Task-specific ones handle jobs like extraction or sentiment; ai_query takes a custom prompt.
+    say_it: Use AI Functions to tag ten thousand support tickets by sentiment right in SQL.
+    customer_line: With AI Functions, your analysts can classify documents in SQL without building an application.
+    source_urls: [https://docs.databricks.com/aws/en/large-language-models/ai-functions]
+    related: [llm]
+
+  - id: rag
+    term: retrieval-augmented generation
+    aliases: [RAG]
+    domain: genai
+    plain: >-
+      A technique that retrieves relevant information when a question is asked and adds it to the prompt,
+      so a large language model answers from current, specific data it wasn't trained on.
+    say_it: The assistant uses retrieval-augmented generation, so its answers come from this quarter's policy documents.
+    customer_line: RAG lets the assistant answer from your own documents rather than whatever the model happened to learn.
+    source_urls: [https://docs.databricks.com/aws/en/generative-ai/retrieval-augmented-generation]
+    related: [embedding, ai-search, llm]
+
+  - id: embedding
+    term: embedding
+    aliases: [embeddings]
+    domain: genai
+    plain: >-
+      A list of numbers, produced by a model, that represents the meaning of a piece of text or an image.
+      Similar meanings get similar numbers, which is what makes search by meaning possible.
+    say_it: We store an embedding for every product description so shoppers can search by meaning, not exact words.
+    source_urls: [https://docs.databricks.com/aws/en/ai-search/ai-search]
+    related: [ai-search, rag]
+
+  - id: ai-search
+    term: AI Search
+    aliases: [Vector Search, Databricks Vector Search, Databricks AI Search]
+    domain: genai
+    plain: >-
+      Databricks' built-in search for AI applications (formerly Vector Search). It indexes embeddings from
+      a source table and finds the entries most similar to a query, for uses like RAG and recommendations.
+    say_it: The chatbot uses AI Search to find the most relevant policy pages before it answers.
+    source_urls: [https://docs.databricks.com/aws/en/ai-search/ai-search]
+    related: [embedding, rag]
+
+  - id: llm
+    term: large language model
+    aliases: [LLM, LLMs, large language models]
+    general: true
+    domain: genai
+    plain: A model trained on large amounts of text that can understand and generate language; it powers chat assistants and text-generation features.
+    say_it: The large language model drafts the summary, and a person reviews it before it goes out.
+    related: [rag]
+
+  - id: api
+    term: API
+    aliases: [APIs]
+    general: true
+    domain: platform
+    plain: A defined way for one piece of software to request data or actions from another, like a menu of requests it agrees to handle.
+    say_it: The app calls the model through its API instead of someone copying results by hand.

@@ -5,5 +5,5 @@ __pycache__/
 *.egg-info/
 build/
 dist/
-data/
+/data/
 .DS_Store

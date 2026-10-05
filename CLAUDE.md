@@ -10,6 +10,8 @@ Shared library for the public Commonground site and the internal work app. Read 
 - **Raw HTML is the source of truth.** Never make preparation depend on refetching; `prepare --full` must work offline.
 - **Whole-file writes only** (no appends), so volumes and object storage work.
 - `ILLUMINATION_FLOOR` / `ILLUMINATION_CUT` live only in `teaching.py`.
+- Check questions are scenarios (apply, don't recall); see `docs/anchor-playbook.md` Part 3.
+- Glossary entries in `data/glossary.yaml` are claims: each cites a public docs page unless it's `general` vocabulary, and `default_glossary().problems()` must stay empty. Verify a definition against the live page before adding it.
 
 ## Tests
 

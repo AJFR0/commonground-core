@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "commonground-core"
-version = "0.2.0"
+version = "0.3.0"
 description = "Shared core for Commonground: public-docs sync (docsync), concept spine, and the analogy teaching gate."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -29,7 +29,7 @@ cgdocs = "commonground_core.docsync.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-commonground_core = ["py.typed"]
+commonground_core = ["py.typed", "data/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -58,6 +58,26 @@ Watch for the **collapse smell**: if every anchor for a concept maps the same ge
   - weak ones are hidden;
   - with no analogy at 4+, the reader gets a plain explanation.
 
+## Part 3: check questions test applying, not recalling
+
+A reader who can repeat a definition hasn't necessarily learned it; one who can use it on a new situation has. So every card's check question is a short scenario:
+
+- **Learner** (How it works): "Your search misses documents that use different words for the same idea. What would you change?"
+- **Business** (Why it matters): "A data leader says audits take weeks. Which capability helps, and what would you ask next?"
+
+Not: "What is an embedding?", "What does RAG stand for?", "Which of the following best describes...?" Definitions belong in the glossary tooltip, not the quiz.
+
+`craft_brief(..., audience="learner" | "business")` asks for this. `teaching.recall_smell(q)` and `check_style_problems(cards)` flag recall-style questions for a reviewer; they're advisory, never a gate. At the time this rule was added, the lint flagged 17 of the public site's 154 checks (a floor; it misses some recall questions).
+
+## Part 4: the glossary
+
+Learning a field is mostly learning its vocabulary. `commonground_core.glossary` holds one entry per term: a plain definition (at most two sentences, citing a public source unless it's general vocabulary), `say_it` (the term used in a natural sentence, so the reader can use it, not just recognize it), and an optional `customer_line` for business readers. Both apps underline the first mention of each term per section and show the definition on hover or tap.
+
+- Shared base: `default_glossary()` (public Databricks terms in `src/commonground_core/data/glossary.yaml`). Apps add their own with `merge(base, app_terms)`; internal terms stay in the work app.
+- `Glossary.mentions()` / `annotate()` / `annotate_html()` find first mentions (longest form wins, code is skipped, short acronyms match only in capitals).
+- `Glossary.problems(live_urls=...)` validates entries and, given the docs mirror's current URLs, flags citations that moved.
+- `term_brief()` / `parse_term()` draft a new entry from grounding facts; a person reviews it like any claim.
+
 ## Known backlog (public site)
 
 Below the floor at the time of the sweep:

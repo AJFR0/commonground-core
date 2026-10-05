@@ -54,3 +54,38 @@ def test_validate_cards_and_concept_problems():
     assert "missing namespace x library" in probs and "empty where_it_breaks in namespace x bank" in probs
     c = Concept("x", "X", "def", claims=[Claim("t", [])], shape="blob")
     assert len(c.problems()) == 2
+
+
+# --- check questions test applying, not recalling -------------------------------------------
+
+def test_craft_brief_demands_scenario_checks():
+    from commonground_core.teaching import craft_brief
+    c = {"name": "Embedding", "plain": "A vector."}
+    learner = craft_brief(c, "hockey", "- f")
+    business = craft_brief(c, "hockey", "- f", audience="business")
+    assert "CHECK RULE" in learner and "SCENARIO" in learner and "recall" in learner
+    assert "CUSTOMER SCENARIO" in business and business != learner
+    import pytest
+    with pytest.raises(ValueError):
+        craft_brief(c, "hockey", "- f", audience="exec")
+
+
+def test_recall_smell():
+    from commonground_core.teaching import recall_smell
+    for q in ("What is an embedding?", "What does RAG stand for?", "Define a metastore.",
+              "Which of the following best describes Unity Catalog?", "True or false: Delta Lake is open source.",
+              "What does a metastore do?", "Embeddings?"):
+        assert recall_smell(q), q
+    for q in ("Your search misses documents that use different words for the same idea. What would you change?",
+              "A data leader says audits take weeks. Which capability helps, and what would you ask next?",
+              "If two jobs write to the same table at once, why doesn't it end up corrupted?"):
+        assert recall_smell(q) is None, q
+
+
+def test_check_style_problems():
+    from commonground_core.teaching import check_style_problems
+    cards = {"e": {"hockey": {"check": {"q": "What is an embedding?", "a": "x"}},
+                   "f1": {"check": {"q": "Your scout wants players like a given star. What would you search on, and why?",
+                                    "a": "x"}}}}
+    assert check_style_problems(cards) == [
+        "recall-style check in e x hockey: reads like definition recall; ask the reader to apply the concept to a situation"]
