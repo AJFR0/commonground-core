@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<title data-rh="true">Databricks AI Search | Databricks on AWS</title>
+<link data-rh="true" rel="canonical" href="https://docs.databricks.com/aws/en/ai-search/ai-search">
+<meta data-rh="true" property="og:title" content="Databricks AI Search | Databricks on AWS">
+<meta data-rh="true" name="description" content="Databricks AI Search (formerly Vector Search) is a vector search engine built into the Data + AI Platform, powering RAG, recommender, and semantic search apps.">
+<meta name="generator" content="Docusaurus v3.9.2">
+</head><body>
+<nav class="navbar">TOP NAV Get started Guides</nav>
+<main class="docMainContainer">
+<article><div class="wrapper_tK7j"><nav class="theme-doc-breadcrumbs breadcrumbsContainer_Jvdz" aria-label="Breadcrumbs"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="Home page" class="breadcrumbs__link" href="/aws/en/"></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/aws/en/agents/"><span>Agents</span></a></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">AI Search</span></li></ul></nav></div><div class="tocCollapsible_UKep theme-doc-toc-mobile tocMobile_G5bF"><button type="button" class="clean-btn tocCollapsibleButton_KOlV">On this page</button></div><div class="row margin-bottom--sm theme-doc-footer-edit-meta-row"><div class="col lastUpdated__anC"><span class="theme-last-updated">Last updated<!-- --> on <b><time datetime="2026-09-14T00:00:00.000Z" itemprop="dateModified">Sep 14, 2026</time></b></span></div><div class="col"></div></div><div class="theme-doc-markdown markdown"><header><h1>Databricks AI Search</h1></header>
+<p>Databricks AI Search (formerly Databricks Vector Search) is a search solution that is built into the Databricks <!-- -->Data + AI Platform<!-- --> and integrated with its governance and productivity tools. It powers retrieval for AI applications such as RAG systems, recommender systems, and image and video recognition by finding the embeddings most similar to a query.</p>
+<p>With Databricks AI Search, you create an AI Search index from a source table, which can be a <!-- -->Delta Lake<!-- --> table, streaming table, or managed table using <a class="" href="/aws/en/iceberg/iceberg-v3">Iceberg v3</a> or above. The index includes embedded data with metadata.</p>
+<p>AI Search supports the following:</p>
+<ul>
+<li class=""><a href="#hybrid" class="">Hybrid keyword-similarity search</a>.</li>
+<li class=""><a class="" href="/aws/en/ai-search/query-ai-search#filters">Filtering</a>.</li>
+<li class=""><a class="" href="/aws/en/ai-search/query-ai-search#rerank">Reranking</a>.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_e1Nq" id="how-does-ai-search-work"><a id="hybrid" class="db-defined-anchor"></a>How does AI Search work?<a href="#how-does-ai-search-work" class="hash-link" aria-label="Direct link to how-does-ai-search-work" title="Direct link to how-does-ai-search-work" translate="no">&#8203;</a></h2>
+<p>AI Search uses the Hierarchical Navigable Small World (HNSW) algorithm for its approximate nearest neighbor (ANN) searches and the L2 distance metric to measure embedding vector similarity.</p>
+<p>AI Search also supports hybrid keyword-similarity search, which combines vector-based embedding search with traditional keyword-based search techniques.</p>
+<h3 class="anchor anchorTargetStickyNavbar_e1Nq" id="keyword-search-algorithm">Keyword search algorithm<a href="#keyword-search-algorithm" class="hash-link" aria-label="Direct link to Keyword search algorithm" title="Direct link to Keyword search algorithm" translate="no">&#8203;</a></h3>
+<p>Relevance scores are calculated using <a href="https://en.wikipedia.org/wiki/Okapi_BM25" target="_blank" rel="noopener noreferrer" class="">Okapi BM25</a>. The tokenization function splits at word boundaries, removes punctuation, and converts all text to lowercase.</p>
+<h2 class="anchor anchorTargetStickyNavbar_e1Nq" id="options-for-providing-vector-embeddings">Options for providing vector embeddings<a href="#options-for-providing-vector-embeddings" class="hash-link" aria-label="Direct link to Options for providing vector embeddings" title="Direct link to Options for providing vector embeddings" translate="no">&#8203;</a></h2>
+<p>To create an AI Search index in Databricks, you must first decide how to provide vector embeddings. Databricks supports three options.</p>
+<div class="theme-admonition theme-admonition-note admonition_ZiGW alert alert--secondary"><div class="admonitionHeading_MXPO"><span class="admonitionIcon_SAkJ"></span>note</div><div class="admonitionContent_zlPx"><p>It is not possible to convert a self-managed embedding index to a Databricks-managed index.</p></div></div>
+<pre class="prism-code language-python"><code class="language-python"><span class="token-line">from databricks.ai_search.client import AISearchClient</span>
+<span class="token-line">client = AISearchClient()</span></code></pre><button type="button" class="copyButton">Copy</button>
+<table><thead><tr><th>Option</th><th>Embeddings</th></tr></thead><tbody><tr><td>Delta Sync</td><td>Databricks-managed</td></tr><tr><td>Direct Vector Access</td><td>Self-managed</td></tr></tbody></table>
+<p>Dedicated full-text search indexes are only available on storage-optimized endpoints and require triggered sync mode.</p>
+</div></article>
+<div class="table-of-contents">TOC</div>
+</main>
+<footer class="footer">Copyright Databricks</footer>
+<script>window.__bundle = 123</script>
+</body></html>

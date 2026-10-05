@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "commonground-core"
+version = "0.1.0"
+description = "Shared core for Commonground: public-docs sync (docsync), concept spine, and the analogy teaching gate."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary (personal project)" }
+authors = [{ name = "AJ Franchino" }]
+dependencies = [
+  "requests>=2.31",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+# Render pages to PDF for the ai_parse_document route (needs `playwright install chromium`).
+pdf = ["playwright>=1.40"]
+# Write to s3://, abfss://, gs:// etc. instead of a local or /Volumes path.
+cloud = ["fsspec>=2024.2"]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+cgdocs = "commonground_core.docsync.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+commonground_core = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

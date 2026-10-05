@@ -1,0 +1,104 @@
+# docsync source config: Databricks public documentation.
+# Run:  cgdocs sync -c sources/databricks-docs.yaml --root ./data
+#
+# The docs sitemaps have no <lastmod>, so change detection relies on HTTP validators
+# (ETag / Last-Modified -> 304 Not Modified) plus a hash of each page's main content.
+# Each page's "Last updated on" date is captured as metadata.
+
+name: databricks-docs
+sitemaps:
+  - https://docs.databricks.com/aws/en/sitemap.xml
+  # - https://docs.databricks.com/gcp/en/sitemap.xml      # GCP flavor (mostly duplicates AWS)
+  # Azure docs live on learn.microsoft.com and need their own source file.
+
+# Which sitemap URLs to keep. Patterns are Python regexes matched against the full URL.
+include:
+  - ^https://docs\.databricks\.com/aws/en/
+exclude:
+  - /archive/            # deprecated pages (also disallowed by robots.txt)
+  - /release-notes/      # very high churn; enable if you want release notes
+  - "[?#]"               # query strings and fragments
+
+respect_robots: true
+user_agent: "commonground-docsync/0.1 (+https://commonground.ajf.codes)"
+
+fetch:
+  delay_seconds: 0.5     # pause between requests per worker
+  workers: 2             # concurrent fetchers; keep small and polite
+  timeout_seconds: 30
+  max_retries: 3         # on 429 / 5xx, honoring Retry-After
+
+detect:
+  # How often an unchanged page is re-checked. A cheap conditional GET (304) still counts.
+  recheck_after_hours: 24
+  # Main-content selectors, tried in order (simple CSS: tag, .class, tag.class, #id).
+  content_selectors:
+    - div.theme-doc-markdown
+    - article
+    - main
+  # Elements removed before hashing and conversion.
+  strip_selectors:
+    - nav
+    - script
+    - style
+    - svg
+    - button
+    - dialog
+    - form
+    - a.hash-link
+    - .theme-doc-toc-mobile
+
+# Path prefix -> taxonomy domain, used by coverage reports in the apps. Longest prefix wins.
+# Prefixes were drafted from the sitemap's top-level sections; check them against a real sync
+# (`cgdocs status --sections`) and adjust.
+sections:
+  /aws/en/admin/: platform
+  /aws/en/agents/: genai
+  /aws/en/ai-gateway/: genai
+  /aws/en/ai-search/: genai
+  /aws/en/generative-ai/: genai
+  /aws/en/large-language-models/: genai
+  /aws/en/machine-learning/: ml
+  /aws/en/mlflow/: ml
+  /aws/en/data-governance/: governance
+  /aws/en/catalogs/: governance
+  /aws/en/security/: governance
+  /aws/en/delta-sharing/: sharing
+  /aws/en/marketplace/: sharing
+  /aws/en/clean-rooms/: sharing
+  /aws/en/ingestion/: data_engineering
+  /aws/en/ldp/: data_engineering
+  /aws/en/jobs/: data_engineering
+  /aws/en/data-engineering/: data_engineering
+  /aws/en/structured-streaming/: data_engineering
+  /aws/en/delta/: data_engineering
+  /aws/en/sql/: data_warehousing
+  /aws/en/ai-bi/: data_warehousing
+  /aws/en/dashboards/: data_warehousing
+  /aws/en/genie/: data_warehousing
+  /aws/en/compute/: platform
+  /aws/en/dev-tools/: platform
+  /aws/en/lakebase/: platform
+  /aws/en/: fundamentals
+
+prepare:
+  profiles:
+    # One markdown file per page with metadata front matter. Feed to ai_prep_search on Databricks,
+    # or any chunker you like. This is the recommended default.
+    markdown:
+      format: markdown
+    # Docs as JSON (metadata + markdown) for read_files / Auto Loader into a Delta table.
+    docs-json:
+      format: json
+    # Built-in heading-aware chunks (~512 tokens), for when you want to own chunking.
+    chunks-heading:
+      format: chunks
+      chunker: heading
+      max_tokens: 512
+      overlap_tokens: 64
+    # Small-to-big: 512-token children that point at 2048-token parents.
+    chunks-parent-child:
+      format: chunks
+      chunker: parent_child
+      child_tokens: 512
+      parent_tokens: 2048
