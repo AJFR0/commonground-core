@@ -156,7 +156,7 @@ terms:
       so a large language model answers from current, specific data it wasn't trained on.
     say_it: The assistant uses retrieval-augmented generation, so its answers come from this quarter's policy documents.
     customer_line: RAG lets the assistant answer from your own documents rather than whatever the model happened to learn.
-    source_urls: [https://docs.databricks.com/aws/en/generative-ai/retrieval-augmented-generation]
+    source_urls: [https://docs.databricks.com/aws/en/agents/retrieval-augmented-generation]
     related: [embedding, ai-search, llm]
 
   - id: embedding

@@ -19,7 +19,7 @@ exclude:
   - /release-notes/      # very high churn; enable if you want release notes
   - "[?#]"               # query strings and fragments
   # API reference: ~2,700 pages of SQL/PySpark function and error-code reference that rarely helps
-  # explain a concept. Remove these three lines for a complete mirror (~5,700 pages instead of ~4,000).
+  # explain a concept. Remove these three lines for a complete mirror (~5,700 pages instead of ~3,000).
   - ^https://docs\.databricks\.com/aws/en/sql/
   - ^https://docs\.databricks\.com/aws/en/pyspark/
   - ^https://docs\.databricks\.com/aws/en/error-messages/

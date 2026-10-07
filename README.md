@@ -26,7 +26,7 @@ cgdocs prepare  -c sources/databricks-docs.yaml --profile markdown
 cgdocs prepare  -c sources/databricks-docs.yaml --profile chunks-heading
 ```
 
-A full first sync of the AWS docs (about 4,000 pages with the default API-reference exclusions) at the default politeness settings takes 30 to 60 minutes; later runs mostly get `304 Not Modified` and finish quickly. If it's interrupted, run it again: it resumes.
+A full first sync of the AWS docs (about 3,000 pages with the default API-reference exclusions) at the default politeness settings takes about 25 minutes; later runs mostly get `304 Not Modified` and finish quickly. If it's interrupted, run it again: it resumes.
 
 Keep the copy private; back it up with `aws s3 sync ./data s3://<private-bucket>/docsync`. See [Where the copy lives](docs/docsync.md#where-the-copy-lives).
 
